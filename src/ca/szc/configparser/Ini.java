@@ -128,6 +128,7 @@ public class Ini
         return sb.toString();
     }
 
+    private boolean ignoreCase = true;
     private boolean allowDuplicates;
     private boolean allowInterpolation;
     private boolean allowNoValue;
@@ -216,12 +217,12 @@ public class Ini
             throw new NoSectionError (sectionName);
         }
 
-        if (!section.containsKey (optionName.toLowerCase()))
+        if (!section.containsKey (c(optionName)))
         {
             throw new NoOptionError (sectionName, optionName);
         }
 
-        return section.get (optionName.toLowerCase());
+        return section.get (c(optionName));
     }
 
     public String getValue (String sectionName, String optionName, String fallback) throws NoSectionError, NoOptionError
@@ -264,7 +265,7 @@ public class Ini
                         sb.append(component);
                     }
                     options.put(optionName, sb.toString());
-                    rawValues.put (sectionName + ":" + optionName.toLowerCase(), rawValue);
+                    rawValues.put (sectionName + ":" + c(optionName), rawValue);
                 }
                 else
                 {
@@ -538,7 +539,7 @@ public class Ini
                             {
                                 parsingErrors.add(new InvalidLine(lineNo, line));
                             }
-                            currOptionName = StringUtil.rstrip(currOptionName).toLowerCase();
+                            currOptionName = c(StringUtil.rstrip(currOptionName));
                             if (!allowDuplicates && unjoinedSections.get(currSectionName).containsKey(currOptionName))
                             {
                                 parsingErrors.add(new DuplicateOptionError(lineNo, currSectionName, currOptionName));
@@ -624,6 +625,14 @@ public class Ini
         return this;
     }
 
+    public String c(String name) {
+        if (ignoreCase) {
+            return name.toLowerCase();
+        } else {
+            return name;
+        }
+    }
+
     /**
      * Parse an INI file with the default {@link Charset}
      *
@@ -662,6 +671,11 @@ public class Ini
         {
             read(reader);
         }
+        return this;
+    }
+
+    public Ini setIgnoreCase(boolean ignoreCase) {
+        this.ignoreCase = ignoreCase;
         return this;
     }
 
@@ -821,7 +835,7 @@ public class Ini
                 // the interpolated one.
                 if (allowInterpolation)
                 {
-                    String rawKey = sectionName + ":" + option.toLowerCase();
+                    String rawKey = sectionName + ":" + c(option);
                     if (rawValues.containsKey (rawKey))
                     {
                         value = rawValues.get (rawKey);
